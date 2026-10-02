@@ -150,6 +150,12 @@ body {
 }
 
 #controlesMobile > div {
+    display: flex-column;
+    justify-content: center;
+    align-items: center;
+}
+
+#controlesMobile > div > div {
     display: flex;
     justify-content: center;
     align-items: center;
