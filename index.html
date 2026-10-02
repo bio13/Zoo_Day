@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoo Day</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main id="container-jogo">
+        <button id="trocarModo">Modo: PC</button>
+        <div id="controlesMobile">
+            <button onclick="realizarAcao()"></button>
+            <div>
+                <button data-direcao="w">▲</button>
+                <button data-direcao="a">◀</button>
+                <button data-direcao="s">▼</button>
+                <button data-direcao="d">▶</button>
+            </div>
+        </div>
+
+        <canvas id="jogo"></canvas>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
