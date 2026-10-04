@@ -28,12 +28,7 @@ function desenharMapa() {
             } else {
                 ctx.fillStyle = "brown";
             }
-            ctx.fillRect(
-                coluna * tamanho,
-                linha * tamanho,
-                tamanho,
-                tamanho
-            );
+            ctx.fillRect(coluna * tamanho, linha * tamanho, tamanho, tamanho);
         }
     }
 }
@@ -46,14 +41,8 @@ const jogador = {
     altura: 24,
     velocidade: 3
 };
-const teclas = {};
 
-document.addEventListener("keydown", (evento) => {
-    teclas[evento.key] = true;
-});
-document.addEventListener("keyup", (evento) => {
-    teclas[evento.key] = false;
-});
+
 
 function colisao(x, y) {
     const pontos = [
@@ -79,6 +68,15 @@ function colisao(x, y) {
     }
     return false;
 }
+
+const teclas = {};
+document.addEventListener("keydown", (evento) => {
+    teclas[evento.key] = true;
+});
+document.addEventListener("keyup", (evento) => {
+    teclas[evento.key] = false;
+});
+
 
 function movimentarJogador() {
     let dx = 0;
@@ -115,7 +113,7 @@ function movimentarJogador() {
 }
 
 function desenharJogador() {
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "white";
     ctx.fillRect(
         jogador.x,
         jogador.y,
@@ -124,11 +122,21 @@ function desenharJogador() {
     );
 }
 
-
 // MODO PC / MOBILE
 let modoJogo = "pc";
 const trocarModo = document.querySelector("#trocarModo");
 const controlesMobile = document.querySelector("#controlesMobile");
+
+if (navigator.maxTouchPoints > 0) {
+    modoJogo = "mobile";
+    trocarModo.textContent = "Modo: Mobile";
+    controlesMobile.style.display = "block";
+} else {
+    modoJogo = "pc";
+    trocarModo.textContent = "Modo: PC";
+    controlesMobile.style.display = "none";
+}
+
 trocarModo.addEventListener("click", () => {
     if (modoJogo === "pc") {
         modoJogo = "mobile";
@@ -140,9 +148,9 @@ trocarModo.addEventListener("click", () => {
         controlesMobile.style.display = "none";
     }
 });
-const botoesMobile = document.querySelectorAll(
-    "#controlesMobile button"
-);
+
+
+const botoesMobile = document.querySelectorAll("#controlesMobile button");
 botoesMobile.forEach((botao) => {
     const direcao = botao.dataset.direcao;
     botao.addEventListener("mousedown", () => {
