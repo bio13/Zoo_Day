@@ -1,3 +1,12 @@
+:root {
+    --cor-fundo: #87ceeb;
+    --cor-borda: #5b3a29;
+    --cor-botao: #fff3c4;
+    --cor-botao-hover: #ffe58a;
+    --cor-botao-ativo: #ffd85c;
+    --cor-sombra: rgba(0, 0, 0, 0.2);
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -10,7 +19,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #87ceeb;
+    background-color: var(--cor-fundo);
     font-family: Arial, sans-serif;
     overflow: hidden;
 }
@@ -35,14 +44,14 @@ body {
 
     display: block;
 
-    border: 6px solid #5b3a29;
+    border: 6px solid var(--cor-borda);
     border-radius: 18px;
 
-    background-color: #8fbc55;
+    background-color: var(--cor-fundo);
 
     box-shadow:
-        0 8px 0 #3d291e,
-        0 12px 25px rgba(0, 0, 0, 0.3);
+        0 8px 0 var(--cor-borda),
+        0 12px 25px var(--cor-sombra);
 
     image-rendering: pixelated;
 }
@@ -57,11 +66,11 @@ body {
 
     padding: 12px 20px;
 
-    border: 3px solid #5b3a29;
+    border: 3px solid var(--cor-borda);
     border-radius: 12px;
 
-    background-color: #fff3c4;
-    color: #5b3a29;
+    background-color: var(--cor-botao);
+    color: var(--cor-borda);
 
     font-size: 16px;
     font-weight: bold;
@@ -69,8 +78,8 @@ body {
     cursor: pointer;
 
     box-shadow:
-        0 4px 0 #5b3a29,
-        0 6px 10px rgba(0, 0, 0, 0.2);
+        0 4px 0 var(--cor-borda),
+        0 6px 10px var(--cor-sombra);
 
     transition:
         transform 0.1s,
@@ -79,15 +88,15 @@ body {
 }
 
 #trocarModo:hover {
-    background-color: #ffe58a;
+    background-color: var(--cor-botao-hover);
 }
 
 #trocarModo:active {
     transform: translateY(4px);
 
     box-shadow:
-        0 0 0 #5b3a29,
-        0 3px 6px rgba(0, 0, 0, 0.2);
+        0 0 0 var(--cor-borda),
+        0 3px 6px var(--cor-sombra);
 }
 
 #controlesMobile {
@@ -114,11 +123,11 @@ body {
 
     margin: 4px;
 
-    border: 3px solid #5b3a29;
+    border: 3px solid var(--cor-borda);
     border-radius: 14px;
 
-    background-color: #fff3c4;
-    color: #5b3a29;
+    background-color: var(--cor-botao);
+    color: var(--cor-borda);
 
     font-size: 24px;
     font-weight: bold;
@@ -126,8 +135,8 @@ body {
     cursor: pointer;
 
     box-shadow:
-        0 5px 0 #5b3a29,
-        0 7px 12px rgba(0, 0, 0, 0.25);
+        0 5px 0 var(--cor-borda),
+        0 7px 12px var(--cor-sombra);
 
     transition:
         transform 0.08s,
@@ -136,17 +145,17 @@ body {
 }
 
 #controlesMobile button:hover {
-    background-color: #ffe58a;
+    background-color: var(--cor-botao-hover);
 }
 
 #controlesMobile button:active {
     transform: translateY(5px);
 
     box-shadow:
-        0 0 0 #5b3a29,
-        0 2px 5px rgba(0, 0, 0, 0.2);
+        0 0 0 var(--cor-borda),
+        0 2px 5px var(--cor-sombra);
 
-    background-color: #ffd85c;
+    background-color: var(--cor-botao-ativo);
 }
 
 #controlesMobile > div {
