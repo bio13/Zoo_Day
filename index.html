@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="screen-orientation" content="landscape">
+    <meta name="x5-orientation" content="landscape">
+    <title>Zoo Day</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- AVISO DE ORIENTAÇÃO -->
+    <div id="aviso-orientacao" role="status" aria-live="polite">
+        <div class="aviso-orientacao-conteudo">
+            <div class="icone-rotacao" aria-hidden="true">↻</div>
+            <h2>Gire seu dispositivo</h2>
+            <p>Este jogo deve ser jogado na horizontal.</p>
+        </div>
+    </div>
+
+    <!-- TELA INICIAL -->
+    <section id="telaInicial" aria-label="Tela inicial do Zoo Day">
+        <div class="painel-inicial">
+            <h1>O Curioso Mundo de Sofia</h1>
+            <button id="botaoIniciar" type="button">JOGAR <span aria-hidden="true">▶</span></button>
+            <p class="instrucoes-iniciais">Use <strong>W A S D</strong> para andar e <strong>E</strong> para interagir.</p>
+            <p class="instrucoes-mobile">No celular, use os controles na tela.</p>
+        </div>
+    </section>
+
+    <!-- ÁREA DO JOGO -->
+    <main id="container-jogo" class="aguardando-inicio">
+        <button id="trocarModo">Modo: PC</button>
+        <div id="controlesMobile" aria-label="Controles do jogo">
+            <div class="direcional" aria-label="Movimentação">
+                <button type="button" data-direcao="w" class="upButton" aria-label="Mover para cima">▲</button>
+                <div>
+                    <button type="button" data-direcao="a" class="leftButton" aria-label="Mover para esquerda">◀</button>
+                    <button id="botaoCentral"><strong>◉</strong></button>
+                    <button type="button" data-direcao="d" class="rightButton" aria-label="Mover para direita">▶</button>
+                </div>
+                <button type="button" data-direcao="s" class="downButton" aria-label="Mover para baixo">▼</button>
+            </div>
+            <div class="area-interacao">
+                <button type="button" id="botaoInteragir" aria-label="Interagir">E</button>
+            </div>
+        </div>
+
+        <canvas id="jogo"></canvas>
+    </main>
+
+    <script src="minigame1.js"></script>
+    <script src="minigame2.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
