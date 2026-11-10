@@ -785,6 +785,35 @@ button:focus-visible {
   }
 }
 
+/* PC (janela alta o bastante): o landscape acima tem fontes pensadas pro celular
+   (8-11px). Aqui os textos crescem junto com a altura da janela; o celular na
+   horizontal (altura <= 520px) continua com os valores originais. */
+@media (orientation: landscape) and (min-height: 521px) {
+  #label-cenario {
+    font-size: clamp(18px, 3vh, 32px);
+  }
+
+  #label-aviso {
+    width: min(80%, 760px);
+    padding: 10px 16px;
+    font-size: clamp(14px, 2.2vh, 22px);
+  }
+
+  #painel-missoes {
+    max-width: clamp(200px, 28vh, 340px);
+    padding: 10px 14px;
+    font-size: clamp(13px, 2vh, 20px);
+  }
+
+  #painel-missoes span {
+    font-size: clamp(11px, 1.7vh, 17px);
+  }
+
+  #trocarModo {
+    font-size: clamp(13px, 1.9vh, 18px);
+  }
+}
+
 /* Durante um minigame: esconde controles e textos. */
 /* visibility (e nao display) para o layout nao mudar e a tela do jogo manter o tamanho. */
 body.em-minigame #label-cenario,

@@ -4,13 +4,13 @@
 	// ============================================================
 	// MINIGAME 1 — Quebra-cabeça do cometa (Caroline Herschel)
 	// ============================================================
-	// Este arquivo é independente do script.js (que roda dentro de uma IIFE),
-	// então as constantes abaixo precisam ser repetidas aqui.
+
+
+	//constantes repetidas do script.js
 	const VIEW_WIDTH = 17 * 32;   // 544
 	const VIEW_HEIGHT = 12 * 32;  // 384
 	const COLORS = { blue: 0x2D3A9F, purple: 0x8E44AD, pink: 0xFFB7B2, white: 0xFFFFFF };
 
-	// A chave da cena deve ser igual ao id usado em MINIGAMES / action (script.js).
 	const SCENE_KEY = "MiniGame_puzzle";
 
 	const IMAGE_KEY = "puzzle_cometa";
@@ -19,18 +19,18 @@
 	// grade do quebra cabeça
 	const COLS = 5;
 	const ROWS = 3;
-	const PIECE = 55;                       // lado do quadrado da peça (sem os encaixes)
+	const PIECE = 55;                       // lado do quadrado da peça
+
 	const KNOB = Math.ceil(PIECE * 0.27);   // quanto o encaixe sai para fora do quadrado
-	const TEX_SCALE = 3;                    // as texturas são geradas 3x maiores (nitidez)
-	const BOARD_W = PIECE * COLS;           // 240
-	const BOARD_H = PIECE * ROWS;           // 160
-	const BOARD_X = (VIEW_WIDTH - BOARD_W) / 2;  // tabuleiro centralizado
+	const TEX_SCALE = 3;                    // escala de render da textura pra ter mais qualidade
+	const BOARD_W = PIECE * COLS;
+	const BOARD_H = PIECE * ROWS;
+	const BOARD_X = (VIEW_WIDTH - BOARD_W) / 2;
 	const BOARD_Y = 120;
-	const EDGE_MARGIN = 20;                 // folga entre as peças e as bordas da tela
+	const FRAME_INNER = 22;                 // a moldura ocupa os 22 px de cada borda da tela
+	const EDGE_MARGIN = 40;                // folga entre as peças e as bordas da tela (já dentro da moldura)
 	const SNAP_DISTANCE = PIECE * 0.45;     // tolerância para encaixar (exige mais precisão)
 
-	// Botão em 9-slice: os cantos de 9 px não são esticados,
-	// só o centro e as bordas, então o botão pode ter qualquer tamanho sem distorcer.
 	const BUTTON_KEY = "botao_9slice";
 	const BUTTON_PATH = "assets/sprites/geral/botao_9slice.png";
 	const BUTTON_SLICE = 9;
@@ -115,12 +115,10 @@
 			super(SCENE_KEY);
 		}
 
-		// Recebe { minigameId, title, description } enviados por openMinigame().
 		init(data) {
 			this.dataForMinigame = data || {};
 			this.placed = 0;
 			this.finished = false;
-			// A instância da cena é reaproveitada ao reabrir o minigame.
 			this.closing = false;
 		}
 
@@ -129,18 +127,16 @@
 			this.load.image(BUTTON_KEY, BUTTON_PATH);
 		}
 
-		// Texto nítido: o jogo usa pixelArt (filtro NEAREST) e o canvas é ampliado pelo
-		// modo FIT, então o texto é renderizado na resolução real da tela, com filtro LINEAR.
 		makeText(x, y, content, style) {
+			// calculo da nitidez do texto pra n ficar borradoo
 			const scale = (this.scale.displaySize.width / VIEW_WIDTH) * (window.devicePixelRatio || 1);
-			// (as coordenadas continuam lógicas, então a conta acima segue valendo)
 			const resolution = Math.min(4, Math.max(2, Math.ceil(scale)));
 			const text = this.add.text(x, y, content, style).setResolution(resolution);
 			text.texture.setFilter(Phaser.Textures.FilterMode.LINEAR);
 			return text;
 		}
 
-		// Botão escalável: nineslice + texto, dentro de um container clicável.
+		// Botão escalável: 9slice + texto, dentro de um container clicável.
 		// width/height em coordenadas lógicas (mínimo: 2 x BUTTON_SLICE).
 		makeButton(x, y, label, { width, height = 40, fontSize = "14px", onClick }) {
 			const text = this.makeText(0, 0, label, {
@@ -176,14 +172,14 @@
 		create() {
 			const { title = "Quebra-cabeça de Caroline Herschel" } = this.dataForMinigame;
 
-			// O canvas do jogo é renderizado em ZOO_RENDER_SCALE x; o zoom mantém o
-			// layout em coordenadas lógicas (544x384) e deixa tudo mais nítido.
 			const renderScale = window.ZOO_RENDER_SCALE || 1;
 			this.cameras.main.setZoom(renderScale).centerOn(VIEW_WIDTH / 2, VIEW_HEIGHT / 2);
 
-			// Fundo ocupa a tela inteira do jogo (sem moldura).
-			this.add.rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, VIEW_WIDTH, VIEW_HEIGHT, COLORS.blue);
-			this.add.rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, VIEW_WIDTH, VIEW_HEIGHT, COLORS.purple, 0.45);
+			// molduraa
+			this.add.rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, VIEW_WIDTH - 28, VIEW_HEIGHT - 28, COLORS.blue)
+				.setStrokeStyle(4, COLORS.white);
+			this.add.rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, VIEW_WIDTH - 44, VIEW_HEIGHT - 44, COLORS.purple, 0.65)
+				.setStrokeStyle(2, COLORS.pink);
 
 			this.titleText = this.makeText(VIEW_WIDTH / 2, 56, title, {
 				fontFamily: FONT_TITLE,
@@ -200,8 +196,8 @@
 			}).setOrigin(0.5);
 			this.updateProgress();
 
-			// Botão de sair (no celular não existe ESC), no canto superior esquerdo.
-			this.exitButton = this.makeButton(26, 24, "X", {
+			// botao sair X
+			this.exitButton = this.makeButton(FRAME_INNER + 6 + 17, FRAME_INNER + 6 + 17, "X", {
 				width: 34,
 				height: 34,
 				fontSize: "16px",
@@ -240,17 +236,14 @@
 			});
 		}
 
-		// ----- Tabuleiro: fundo escuro, imagem "fantasma" e contornos das peças -----
+		// tabuleiro que é só o fundo azul escuro
 		buildBoard() {
 			this.edgeMap = createEdgeMap();
 			this.boardBg = this.add.rectangle(BOARD_X + BOARD_W / 2, BOARD_Y + BOARD_H / 2, BOARD_W + 8, BOARD_H + 8, 0x000000, 0.6)
 				.setStrokeStyle(2, COLORS.white);
-
-			// Sem imagem de referência e sem linhas de guia: o jogador precisa
-			// descobrir sozinho onde cada peça vai.
 		}
 
-		// ----- Peças: cada uma é uma textura recortada no formato de quebra-cabeça -----
+		// peças recortadas no formato de quebra cabeça mesmo 
 		buildPieces() {
 			const { source, x, y, w, h } = this.crop;
 			const size = PIECE + KNOB * 2; // textura inclui a folga para os encaixes
@@ -392,7 +385,6 @@
 			});
 		}
 
-		// Peça no lugar certo: fixa e não pode mais ser movida.
 		snapPiece(piece) {
 			piece.disableInteractive();
 			piece.setDepth(5).setAngle(0);
@@ -409,7 +401,6 @@
 			});
 		}
 
-		// Peça no lugar errado: volta para a posição inicial.
 		returnPiece(piece) {
 			this.tweens.add({
 				targets: piece,
@@ -426,10 +417,7 @@
 			this.progressText.setText(`Peças: ${this.placed || 0}/${COLS * ROWS}`);
 		}
 
-		// ----- Conclusão -----
-		// 1) as linhas das peças somem (a imagem inteira, sem linhas, surge por cima);
-		// 2) a imagem sobe e diminui, o resto da tela some;
-		// 3) o texto aparece linha por linha; 4) o botão CONTINUAR surge.
+		// retirar as bborda as peças e fazer a imagem pulsar quando ganhar
 		win() {
 			this.finished = true;
 			this.exitButton.disableInteractive();
@@ -457,6 +445,7 @@
 			});
 		}
 
+		// a animacao de verdade que ocorre dps de ganhar
 		showCuriosity() {
 			// O resto da tela some suavemente.
 			this.tweens.add({
@@ -466,17 +455,17 @@
 			});
 
 			// A imagem completa sobe e diminui para dar lugar ao texto.
-			const imageY = 112;
+			const imageY = 117;
 			this.tweens.add({
 				targets: this.finalImage,
 				x: VIEW_WIDTH / 2,
 				y: imageY,
-				scale: (1 / TEX_SCALE) * 0.8,
+				scale: (1 / TEX_SCALE) * 0.68,
 				duration: 800,
 				ease: "Cubic.easeInOut"
 			});
 
-			const heading = this.makeText(VIEW_WIDTH / 2, 26, "Parabéns!", {
+			const heading = this.makeText(VIEW_WIDTH / 2, 44, "Parabéns!", {
 				fontFamily: FONT_TITLE,
 				fontSize: "22px",
 				color: "#FFFFFF"
@@ -497,7 +486,7 @@
 			const lineHeight = probe.height / lines.length;
 			probe.destroy();
 
-			const startY = 196;
+			const startY = 180;
 			const firstDelay = 1000;
 			const step = 170;
 			let lastTween = null;
@@ -516,7 +505,7 @@
 			});
 
 			const textEnd = startY + lines.length * lineHeight;
-			const buttonY = Math.min(VIEW_HEIGHT - 28, textEnd + 30);
+			const buttonY = Math.min(VIEW_HEIGHT - FRAME_INNER - 26, textEnd + 30);
 			const showButton = () => {
 				const next = this.makeButton(VIEW_WIDTH / 2, buttonY, "CONTINUAR", {
 					height: 40,
@@ -535,7 +524,6 @@
 			if (Phaser.Input.Keyboard.JustDown(this.keys.esc)) this.close(this.finished);
 		}
 
-		// completed = true marca o progresso no jogo principal.
 		close(completed) {
 			if (this.closing) return;
 			this.closing = true;
@@ -545,7 +533,7 @@
 		}
 	}
 
-	// Registro global: o script.js lê esta lista ao criar o Phaser.Game.
+	// registra minigmae na lista
 	window.MINIGAME_SCENES = window.MINIGAME_SCENES || [];
 	window.MINIGAME_SCENES.push({ id: "puzzle", key: SCENE_KEY, scene: Minigame1Scene });
 })();

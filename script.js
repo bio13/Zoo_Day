@@ -24,8 +24,6 @@
   const VIEW_ROWS = 12;
   const VIEW_WIDTH = VIEW_COLS * TILE_SIZE;
   const VIEW_HEIGHT = VIEW_ROWS * TILE_SIZE;
-  // O canvas é renderizado em RENDER_SCALE x a resolução lógica (544x384) e as câmeras
-  // dão zoom equivalente: o jogo continua igual, mas textos e imagens ficam nítidos.
   const RENDER_SCALE = 2;
   window.ZOO_RENDER_SCALE = RENDER_SCALE;
   const PLAYER_SIZE = 24;
@@ -1435,7 +1433,9 @@
   }
 
   // Precisa ser chamada dentro de um gesto do usuário (clique/toque).
+  // só no mobile porque no pc acho que nao precisa, so apertar f11
   function requestFullscreen() {
+    if (mode !== "mobile") return;
     const root = document.documentElement;
     const request = root.requestFullscreen || root.webkitRequestFullscreen || root.msRequestFullscreen;
     if (!request || document.fullscreenElement || document.webkitFullscreenElement) return;
@@ -1450,10 +1450,10 @@
   }
 
   // Altura realmente visível (descontando barras do navegador no celular). As unidades
-  // vh/dvh nem sempre acompanham isso, então o CSS usa --app-h (ver style.css).
+  // vh/dvh nem sempre acompanham isso, então o CSS usa --app-h.
   function updateAppHeight() {
     const height = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-    document.documentElement.style.setProperty("--app-h", `px`);
+    document.documentElement.style.setProperty("--app-h", `${Math.round(height)}px`);
   }
 
   function updateOrientationNotice() {
