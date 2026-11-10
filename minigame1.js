@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
 	"use strict";
 
 	// ============================================================
@@ -37,7 +37,7 @@
 	const BUTTON_TEXT_COLOR = "#3B0050";
 
 	const FONT_TITLE = '"Alagard", monospace';
-	const FONT_TEXT = '"Type Writer", monospace';
+	const FONT_TEXT = '"Pixelify Sans", monospace';
 
 	const CURIOSITY =
 		"Caroline Herschel (1750-1848) foi uma astrônoma alemã e a primeira mulher a " +
