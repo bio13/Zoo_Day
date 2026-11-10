@@ -1,3 +1,17 @@
+/*
+ * O CURIOSO MUNDO DE SOFIA
+ * Script principal do jogo (Phaser).
+ *
+ * GUIA RÁPIDO PARA A EQUIPE:
+ * 1. Cenários e objetos: procure por MAPS (principalmente o mapa "zoo").
+ * 2. Sprites e animações da Sofia: procure por CHARACTER_SPRITES.
+ * 3. Imagens de pisos e objetos: procure por TILE_ASSETS e OBJECT_ASSETS.
+ * 4. Regras das missões: procure por interact() e onMinigameClosed().
+ * 5. Integração dos minigames: mantenha os eventos documentados na seção 5.
+ *
+ * A organização abaixo mantém o jogo em um único arquivo para preservar
+ * a forma atual de carregamento pelo index.html.
+ */
 (() => {
   "use strict";
 
@@ -64,20 +78,27 @@
     obj_books: "assets/sprites/objects/books.png",
     obj_door_closed_front: "assets/sprites/objects/door_closed_front.png",
     obj_door_closed_back: "assets/sprites/objects/door_closed_back.png",
-    obj_door_closed_side: "assets/sprites/objects/door_closed_side.png",
+    obj_door_closed_left: "assets/sprites/objects/door_closed_left.png",
+    obj_door_closed_right: "assets/sprites/objects/door_closed_right.png",
     obj_door_open_left: "assets/sprites/objects/door_open_left.png",
     obj_door_open_front: "assets/sprites/objects/door_open_front.png",
     obj_door_open_back: "assets/sprites/objects/door_open_back.png",
     obj_sofa: "assets/sprites/objects/sofa.png",
-    obj_fridge: "assets/sprites/objects/fridge.png",
-    obj_counter: "assets/sprites/objects/counter.png",
-    obj_stove: "assets/sprites/objects/stove.png",
-    obj_sink: "assets/sprites/objects/sink.png",
-    obj_sandwich_station: "assets/sprites/objects/sandwich_station.png",
-    obj_puzzle_table: "assets/sprites/objects/puzzle_table.png",
-    obj_book: "assets/sprites/objects/book.png",
-    obj_puzzle: "assets/sprites/objects/puzzle.png",
+    obj_portrait: "assets/sprites/objects/portrait.png",
+    obj_tv: "assets/sprites/objects/tv.png",
     obj_bench: "assets/sprites/objects/bench.png",
+    obj_armchair: "assets/sprites/objects/armchair.png",
+    obj_living_room_table: "assets/sprites/objects/living_room_table.png",
+    obj_chair_back: "assets/sprites/objects/chair_back.png",
+    obj_chair_front: "assets/sprites/objects/chair_front.png",
+    obj_chair_left: "assets/sprites/objects/chair_left.png",
+    obj_chair_right: "assets/sprites/objects/chair_right.png",
+    obj_table: "assets/sprites/objects/table.png",
+    obj_fridge: "assets/sprites/objects/fridge.png",
+    obj_sandwich_station: "assets/sprites/objects/sandwich_station.png",
+    obj_window: "assets/sprites/objects/window.png",
+    obj_hutch: "assets/sprites/objects/hutch.png",
+    obj_stove: "assets/sprites/objects/stove.png",
     obj_tree: "assets/sprites/objects/tree.png",
     obj_bush: "assets/sprites/objects/bush.png",
     obj_plant: "assets/sprites/objects/plant.png",
@@ -87,8 +108,35 @@
     obj_sign_animals: "assets/sprites/objects/sign_animals.png",
     obj_fountain: "assets/sprites/objects/fountain.png",
     obj_flower: "assets/sprites/objects/flower.png",
-    obj_sofia: "assets/sprites/objects/sofia.png",
+    obj_sofia: "assets/sprites/objects/sofia_bottom.png",
     obj_cabinet: "assets/sprites/objects/cabinet.png"
+  };
+
+  // ============================================================
+  // SPRITES DA SOFIA
+  // ============================================================
+  // EDITE AQUI: substitua os arquivos ou acrescente frames mantendo a ordem.
+  // O nome da direção também é usado para montar as chaves das animações.
+  const CHARACTER_SPRITES = {
+    movement: {
+      down: ["sofia.png", "sofia2.png", "sofia3.png", "sofia4.png"],
+      up: ["sofia-up.png", "sofia-up2.png", "sofia-up3.png", "sofia-up4.png"],
+      right: ["sofia-right.png", "sofia-right2.png", "sofia-right3.png", "sofia-right4.png"],
+      "down-right": ["sofia-down-right.png", "sofia-down-right2.png", "sofia-down-right3.png", "sofia-down-right4.png"],
+      "up-right": ["sofia-up-right.png", "sofia-up-right2.png", "sofia-up-right3.png", "sofia-up-right4.png"]
+    },
+    interaction: {
+      down: ["sofia-interaction1.png", "sofia-interaction2.png", "sofia-interaction3.png"],
+      right: ["sofia-interaction-right1.png", "sofia-interaction-right2.png", "sofia-interaction-right3.png"],
+      up: ["sofia-interaction-up1.png", "sofia-interaction-up2.png", "sofia-interaction-up3.png"],
+      "down-right": ["sofia-interaction-down-right1.png", "sofia-interaction-down-right2.png", "sofia-interaction-down-right3.png"],
+      "up-right": ["sofia-interaction-up-right1.png", "sofia-interaction-up-right2.png", "sofia-interaction-up-right3.png"]
+    }
+  };
+
+  const PLAYER_ANIMATION = {
+    movementFrameRate: 8,
+    interactionFrameRate: 8
   };
 
   // ============================================================
@@ -162,11 +210,14 @@
   // ============================================================
   // 3. MAPAS E POSICIONAMENTO DOS SPRITES
   // ============================================================
+  // EDITE AQUI: mapas, layouts, pontos de spawn, portas e objetos.
+  // Cada posição de objeto usa colunas/linhas da grade do cenário.
   const MAPS = {
+    // CENÁRIO: quarto da Sofia.
     bedroom: {
       title: "Quarto da Sofia",
       width: 9,
-      height: 8,
+      height: 9,
       layout: [
         "#########",
         "#########",
@@ -175,7 +226,8 @@
         "#.RRRRR.#",
         "#.RRRRR.#",
         "#.......#",
-        "####D####"
+        "####D####",
+        "####.####"
       ],
       floorFrames: ["tile_floor_house"],
       wallFrontFrame: "tile_wall_front",
@@ -193,6 +245,16 @@
 
         center: "tile_rug_center"
       },
+      tileOverrides: {
+        "8,0": "tile_wall_front",
+        "8,1": "tile_wall_front",
+        "8,2": "tile_wall_front",
+        "8,3": "tile_wall_front",
+        "8,5": "tile_wall_front",
+        "8,6": "tile_wall_front",
+        "8,7": "tile_wall_front",
+        "8,8": "tile_wall_front"
+      },
       spawn: { col: 4, row: 4 },
       portals: [
         { col: 4, row: 7, to: "hallway", spawn: { col: 2, row: 2 }, label: "Ir para o corredor" }
@@ -200,15 +262,18 @@
       objects: [
         object("obj_space_poster", 1.5, 0.7, 2, 1, { depthOffset: 20 }),
         object("obj_space_poster_2", 5.5, 0.73, 2, 1, { depthOffset: 20 }),
-        object("obj_desk", 3.5, 1.4, 2, 1, { solid: true, collision: [0.08, 0.2, 0.84, 0.72], visualWidth: 50 }),
-        object("obj_door_open_back", 4, 7, 1, 1, { depthOffset: 3 }),
-        object("obj_cat_decoration", 0.8, 5.5, 1, 1, { depthOffset: 20, visualWidth: 20}),
-        object("obj_books", 7.2, 5, 1, 1, { depthOffset: 20, visualWidth: 20, solid: true, collision: [0.15, 0.12, 0.75, 0.85] }),
-        object("obj_bed", 1.5, 2.2, 2, 2, {
+        object("obj_desk", 3.5, 1.4, 2, 1, {
           solid: true,
-          collision: [0.14, 0.02, 1.1, 0.7],
+          collision: [0.08, 0.2, 0.84, 0.72],
+          action: "phone",
+          label: "Atender a ligação da amiga",
+          interactionRadius: 82,
           visualWidth: 50
         }),
+        object("obj_door_open_front", 4, 7, 1, 1, { depthOffset: 3 }),
+        object("obj_cat_decoration", 0.8, 5.5, 1, 1, { depthOffset: 20, visualWidth: 20 }),
+        object("obj_books", 7.2, 5, 1, 1, { depthOffset: 20, visualWidth: 20, solid: true, collision: [0.15, 0.12, 0.75, 0.85] }),
+        object("obj_bed", 1.5, 2.2, 2, 2, { solid: true, collision: [0.14, 0.02, 1.1, 0.7], visualWidth: 50 }),
         object("obj_wardrobe", 7, 1.6, 2, 2, {
           solid: true,
           collision: [0.05, 0.14, 0.9, 0.82],
@@ -219,78 +284,120 @@
       ]
     },
 
+    // CENÁRIO: corredor que conecta os cômodos.
     hallway: {
       title: "Corredor",
       width: 5,
-      height: 9,
+      height: 10,
       layout: [
-        "#####",
         "##D##",
+        "##.##",
+        "#...#",
+        ".....",
         "#...#",
         "#...#",
+        ".....",
         "#...#",
-        "#...#",
-        "#...#",
-        "#...#",
+        "##.##",
         "##D##"
       ],
       floorFrames: ["tile_floor_house"],
       wallFrontFrame: "tile_wall_front",
       wallOtherFrame: "tile_wall_other",
+      tileOverrides: {
+        "9,0": "tile_wall_front",
+        "9,1": "tile_wall_front",
+        "9,3": "tile_wall_front",
+        "9,4": "tile_wall_front",
+      },
       spawn: { col: 2, row: 2 },
       portals: [
-        { col: 2, row: 1, to: "bedroom", spawn: { col: 4, row: 7 }, label: "Entrar no quarto" },
-        { col: 2, row: 8, to: "livingroom", spawn: { col: 5, row: 2 }, label: "Ir para a sala de estar" }
+        { col: 2, row: 0, to: "bedroom", spawn: { col: 4, row: 7 }, label: "Entrar no quarto" },
+        { col: 2, row: 9, to: "livingroom", spawn: { col: 7, row: 2 }, label: "Ir para a sala de estar" }
       ],
       objects: [
-        object("obj_door_open_front", 2, 1, 1, 1, { depthOffset: 3, solid: true }),
-        object("obj_door_open_back", 2, 8, 1, 1, { depthOffset: 3 }),
+        object("obj_door_open_front", 2, 0, 1, 1, { depthOffset: 3, solid: true }),
+        object("obj_door_closed_left", 0, 3, 1, 1, { solid: true, collision: [0, 0.3, 0.06, 0.5] }),
+        object("obj_door_closed_right", 4, 3, 1, 1, { solid: true, collision: [0.96, 0.3, 0.06, 0.5] }),
+        object("obj_door_closed_left", 0, 6, 1, 1, { solid: true, collision: [0, 0.3, 0.06, 0.5] }),
+        object("obj_door_closed_right", 4, 6, 1, 1, { solid: true, collision: [0.96, 0.3, 0.06, 0.5] }),
       ]
     },
 
+    // CENÁRIO: sala de estar.
     livingroom: {
       title: "Sala de estar",
       width: 11,
-      height: 8,
+      height: 9,
       layout: [
-        "###########",
-        "#####D#####",
+        "#######D###",
+        "#######.###",
+        "#.........#",
+        "#.RRR.....#",
+        "#.RRR.....D",
         "#.........#",
         "#.........#",
-        "#.........D",
-        "#.........#",
-        "#.........#",
+        "#######.###",
         "#######D###"
       ],
       floorFrames: ["tile_floor_house"],
       wallFrontFrame: "tile_wall_front",
       wallOtherFrame: "tile_wall_other",
-      tileOverrides: {"3,10": "tile_wall_front"},
+      rugFrames: {
+        top: "tile_rug_top",
+        bottom: "tile_rug_bottom",
+        left: "tile_rug_left",
+        right: "tile_rug_right",
+
+        topLeft: "tile_rug_top_left",
+        topRight: "tile_rug_top_right",
+        bottomLeft: "tile_rug_bottom_left",
+        bottomRight: "tile_rug_bottom_right",
+
+        center: "tile_rug_center"
+      },
+      tileOverrides: {
+        "3,10": "tile_wall_front",
+        "8,0": "tile_wall_front",
+        "8,1": "tile_wall_front",
+        "8,2": "tile_wall_front",
+        "8,3": "tile_wall_front",
+        "8,4": "tile_wall_front",
+        "8,5": "tile_wall_front",
+        "8,6": "tile_wall_front",
+        "8,8": "tile_wall_front",
+        "8,9": "tile_wall_front",
+        "8,10": "tile_wall_front"
+      },
       spawn: { col: 5, row: 2 },
       portals: [
-        { col: 5, row: 1, to: "hallway", spawn: { col: 2, row: 8 }, label: "Ir para o corredor" },
-        { col: 10, row: 4, to: "kitchen", spawn: { col: 1, row: 5 }, label: "Ir para a cozinha" },
-        { col: 5, row: 7, to: "zoo", spawn: { col: 15, row: 17 }, label: "Sair de casa para o zoológico", locked: true }
+        { col: 7, row: 0, to: "hallway", spawn: { col: 2, row: 8 }, label: "Ir para o corredor" },
+        { col: 10, row: 4, to: "kitchen", spawn: { col: 0, row: 4 }, label: "Ir para a cozinha" },
+        { col: 7, row: 8, to: "zoo", spawn: { col: 15, row: 17 }, label: "Sair de casa para o zoológico", locked: true }
       ],
       objects: [
-        object("obj_sofa", 1.8, 2, 3, 2, { solid: true, collision: [-0.1, 0.3, 1.7, 0.5], visualWidth: 80 }),
-        object("obj_bench", 1.8, 3.5, 2, 2, {
+        object("obj_sofa", 3, 1.9, 3, 2, { solid: true, collision: [-0.6, 0.3, 2.2, 0.5], visualWidth: 80 }),
+        object("obj_bench", 3, 3.5, 2, 2, {
           solid: true,
-          collision: [-0.1, 0.35, 1.4, 0.55],
+          collision: [-0.25, 0.35, 1.5, 0.55],
           action: "puzzle",
           label: "Ler o livro e montar o quebra-cabeça",
           interactionRadius: 50,
           visualWidth: 60
-        }),        
-        object("obj_door_open_front", 5, 1, 1, 1, { depthOffset: 3, solid: true }),
-        object("obj_door_closed_back", 7, 7, 1, 1, { solid: true })
+        }),
+        object("obj_armchair", 1, 3.4, 1, 1, { solid: true, collision: [-0.3, 0.1, 1.1, 0.7] }),
+        object("obj_portrait", 5.4, 0.8, 2, 1, { depthOffset: 20, visualWidth: 20 }),
+        object("obj_tv", 3, 6, 2, 1, { solid: true, collision: [-0.3, 0.1, 1.55, 0.7], visualWidth: 60 }),
+        object("obj_living_room_table", 9, 1.7, 1, 1, { depthOffset: 3, solid: true, collision: [0.17, 0.1, 0.55, 0.7] }),
+        object("obj_door_closed_front", 7, 8, 1, 1, { solid: true, collision: [-0.3, 0.9, 1.1, 0.7] })
       ]
     },
 
+    // CENÁRIO: cozinha.
     kitchen: {
       title: "Cozinha",
       width: 10,
-      height: 8,
+      height: 9,
       layout: [
         "##########",
         "##########",
@@ -299,33 +406,56 @@
         "D........#",
         "#........#",
         "#........#",
+        "##########",
         "##########"
       ],
       floorFrames: ["tile_floor_house"],
       wallFrontFrame: "tile_wall_front",
       wallOtherFrame: "tile_wall_other",
-      tileOverrides: {"3,0": "tile_wall_front"},
+      tileOverrides: {
+        "3,0": "tile_wall_front",
+        "8,0": "tile_wall_front",
+        "8,1": "tile_wall_front",
+        "8,2": "tile_wall_front",
+        "8,3": "tile_wall_front",
+        "8,4": "tile_wall_front",
+        "8,5": "tile_wall_front",
+        "8,6": "tile_wall_front",
+        "8,7": "tile_wall_front",
+        "8,8": "tile_wall_front",
+        "8,9": "tile_wall_front"
+      },
       spawn: { col: 8, row: 5 },
       portals: [
         { col: 0, row: 4, to: "livingroom", spawn: { col: 10, row: 4 }, label: "Voltar para a sala de estar" }
       ],
       objects: [
-        object("obj_fridge", 1, 2, 2, 3, { solid: true, collision: [0.08, 0.1, 0.84, 0.85] }),
-        object("obj_counter", 5, 2, 3, 1, { solid: true, collision: [0.02, 0.25, 0.96, 0.72] }),
-        object("obj_stove", 4, 2, 2, 2, { solid: true, collision: [0.08, 0.22, 0.84, 0.72] }),
-        object("obj_sink", 4, 2, 2, 2, { solid: true, collision: [0.08, 0.22, 0.84, 0.72] }),
-        object("obj_cabinet", 5, 2, 3, 1, { solid: true, collision: [0.02, 0.25, 0.96, 0.72] }),
-        object("obj_sandwich_station", 1, 8, 3, 2, {
+        object("obj_fridge", 5.56, 1.6, 2, 3, { solid: true, collision: [0.22, 0, 0.56, 0.5], depthOffset: 3, visualWidth: 25 }),
+        object("obj_window", 2, 0.9, 2, 1, { depthOffset: 20, visualWidth: 25 }),
+        object("obj_window", 4, 0.9, 2, 1, { depthOffset: 20, visualWidth: 25 }),
+        object("obj_table", 4, 4, 2, 1, { solid: true, collision: [-0.45, 0.25, 1.9, 0.3], depthOffset: 3, visualWidth: 70 }),
+        object("obj_chair_front", 4, 3.3, 2, 1, { solid: true, collision: [0.3, 0.45, 0.4, 0.4] }),
+        object("obj_chair_back", 4, 4.3, 2, 1, { solid: true, collision: [0.3, 0.25, 0.4, 0.4] }),
+        object("obj_chair_left", 2.4, 3.9, 2, 1, { solid: true, collision: [0.5, 0.6, 0.4, 0.1] }),
+        object("obj_chair_right", 5.6, 3.9, 2, 1, { solid: true, collision: [0.4, 0.6, 0.05, 0.1] }),
+        object("obj_sandwich_station", 7.25, 1.6, 3, 2, {
           solid: true,
-          collision: [0.04, 0.44, 0.92, 0.5],
+          collision: [-0.7, 0, 2, 0.5],
           action: "sandwiches",
           label: "Preparar os sanduíches",
-          interactionRadius: 82
+          interactionRadius: 82,
+          visualWidth: 80
         }),
-
+        object("obj_hutch", 7.5, 6, 2, 3, { solid: true, collision: [-0.1, 0.4, 1.4, 0.5], depthOffset: 3, visualWidth: 65 }),
+        object("obj_stove", 6, 6, 1, 1, { solid: true, collision: [0.08, 0.22, 0.84, 0.72] }),
       ]
     },
 
+    // ========================================================
+    // CENÁRIO PRINCIPAL: ZOOLÓGICO
+    // EDITE AQUI para mudar tamanho, caminhos, gramado, entrada,
+    // decoração, posição dos objetos e pontos de interação.
+    // ========================================================
     zoo: {
       title: "Zoológico — Piquenique",
       width: 30,
@@ -407,6 +537,7 @@
       this.currentMapId = "bedroom";
       this.playerState = { x: 0, y: 0, width: PLAYER_SIZE, height: PLAYER_SIZE };
       this.minigameOpen = false;
+      this.interactionAnimating = false;
       this.progress = { sandwiches: false, puzzle: false, look: false, phone: false, zoo: false, mixtures: false };
       this.transitioning = false;
       this.dialogueOpen = false;
@@ -420,6 +551,27 @@
     preload() {
       for (const [key, path] of Object.entries(TILE_ASSETS)) this.load.image(key, path);
       for (const [key, path] of Object.entries(OBJECT_ASSETS)) this.load.image(key, path);
+      // Carrega os frames de movimento cadastrados em CHARACTER_SPRITES.
+      for (const [direction, files] of Object.entries(CHARACTER_SPRITES.movement)) {
+        files.forEach((file, index) => {
+          const frame = index + 1;
+          this.load.image(
+            `sofia-${direction}-${frame}`,
+            `assets/sprites/characters/${file}`
+          );
+        });
+      }
+
+      // Carrega os frames usados quando Sofia interage com um objeto.
+      for (const [direction, files] of Object.entries(CHARACTER_SPRITES.interaction)) {
+        files.forEach((file, index) => {
+          const frame = index + 1;
+          this.load.image(
+            `sofia-interaction-${direction}${frame}`,
+            `assets/sprites/characters/${file}`
+          );
+        });
+      }
     }
 
     create() {
@@ -429,12 +581,45 @@
       this.playerState.x = initial.spawn.col * TILE_SIZE + (TILE_SIZE - PLAYER_SIZE) / 2;
       this.playerState.y = initial.spawn.row * TILE_SIZE + (TILE_SIZE - PLAYER_SIZE) / 2;
 
-      // O sprite do personagem é ancorado pelos pés.
-      this.player = this.add.image(
+      const directions = Object.keys(CHARACTER_SPRITES.movement);
+
+      // Animações de movimento: repetem enquanto a personagem anda.
+      for (const direction of directions) {
+        const frameCount = CHARACTER_SPRITES.movement[direction].length;
+        this.anims.create({
+          key: `sofia-${direction}`,
+          frames: Array.from({ length: frameCount }, (_, index) => ({
+            key: `sofia-${direction}-${index + 1}`
+          })),
+          frameRate: PLAYER_ANIMATION.movementFrameRate,
+          repeat: -1
+        });
+      }
+
+      // Animações de interação: executam uma vez e depois retornam ao movimento.
+      for (const [direction, files] of Object.entries(CHARACTER_SPRITES.interaction)) {
+        this.anims.create({
+          key: `sofia-interaction-${direction}`,
+          frames: Array.from({ length: files.length }, (_, index) => ({
+            key: `sofia-interaction-${direction}${index + 1}`
+          })),
+          frameRate: PLAYER_ANIMATION.interactionFrameRate,
+          repeat: 0
+        });
+      }
+
+      this.player = this.add.sprite(
         this.playerState.x + PLAYER_SIZE / 2,
         this.playerState.y + PLAYER_SIZE,
-        "obj_sofia"
-      ).setOrigin(0.5, 1).setDisplaySize(24, 36).setDepth(100);
+        "sofia-down-1"
+      )
+        .setOrigin(0.5, 1)
+        .setDisplaySize(38, 44)
+        .setDepth(100);
+
+      this.playerDirection = "";
+
+      this.playerDirection = "sofia-down";
 
       this.hud = {
         setText: (text) => {
@@ -490,20 +675,34 @@
       this.loadScenario(this.currentMapId, initial.spawn);
       const loading = document.querySelector("#loadingOverlay");
       if (loading) loading.hidden = true;
-      this.showNotice("Sofia: Hoje vai ser um dia especial no zoológico! Vou me arrumar e preparar os sanduíches.", 5200);
+      this.showNotice("Sofia: Hoje vai ser um dia especial no zoológico! Preciso ir logo para a cozinha preparar os sanduíches.", 5200);
     }
 
     update(_time, delta) {
       if (this.minigameOpen || this.dialogueOpen || this.transitioning) return;
 
-      this.movePlayer(Math.min(delta, 50) / 1000);
+      // Sofia só pode se movimentar quando não está interagindo.
+      if (!this.interactionAnimating) {
+        this.movePlayer(Math.min(delta, 50) / 1700);
+      }
+
       this.updateCamera();
       this.updatePlayerDepth();
       this.updateInteractionPrompt();
+      this.updateMissionPanel();
 
-      if (Phaser.Input.Keyboard.JustDown(this.keys.interact)) this.interact();
+      // Pressionar E inicia a animação de interação.
+      if (
+        !this.interactionAnimating &&
+        Phaser.Input.Keyboard.JustDown(this.keys.interact)
+      ) {
+        this.playInteractionAnimation();
+      }
     }
 
+    // ----------------------------------------------------------
+    // CENÁRIOS: montagem dos mapas, tiles, objetos e colisões.
+    // ----------------------------------------------------------
     buildAllScenarios() {
       for (const [mapId, map] of Object.entries(MAPS)) {
         const worldWidth = map.width * TILE_SIZE;
@@ -622,6 +821,7 @@
       }
     }
 
+    // Escolhe qual textura será usada em cada posição da grade.
     getTileTexture(map, symbol, row, col) {
       const override = map.tileOverrides?.[`${row},${col}`];
       if (override) {
@@ -666,6 +866,7 @@
       return frames[(row * 7 + col * 3) % frames.length];
     }
 
+    // Calcula a área física de um objeto sólido.
     createObjectCollider(definition) {
       const left = definition.col * TILE_SIZE;
       const top = definition.row * TILE_SIZE;
@@ -680,6 +881,7 @@
       };
     }
 
+    // Ativa um cenário e posiciona Sofia no ponto de entrada informado.
     loadScenario(mapId, spawn = null) {
       const map = MAPS[mapId];
       const view = this.scenarioViews.get(mapId);
@@ -708,9 +910,13 @@
       this.releaseAllDirections();
     }
 
+    // ----------------------------------------------------------
+    // PERSONAGEM: movimentação, animação, colisão e câmera.
+    // ----------------------------------------------------------
     movePlayer(deltaSeconds) {
       let dx = 0;
       let dy = 0;
+
       const left = this.keys.a.isDown || this.keys.left.isDown || mobileDirections.a;
       const right = this.keys.d.isDown || this.keys.right.isDown || mobileDirections.d;
       const up = this.keys.w.isDown || this.keys.up.isDown || mobileDirections.w;
@@ -720,9 +926,48 @@
       if (right) dx += 1;
       if (up) dy -= 1;
       if (down) dy += 1;
-      if (dx === 0 && dy === 0) return;
 
-      // Normalização para impedir que a diagonal seja mais rápida.
+      if (this.idleTime === undefined) this.idleTime = 0;
+      if (dx === 0 && dy === 0) {
+        this.idleTime += deltaSeconds;
+
+        // Só para a animação se a personagem ficar parada por 0,1 segundo.
+        if (this.idleTime >= 0.1 && this.player.anims.isPlaying) {
+          this.player.anims.stop();
+          this.player.setTexture(`${this.playerDirection}-1`);
+        }
+
+        return;
+      }
+
+      this.idleTime = 0;
+
+      let direction;
+
+      if (dy > 0 && dx !== 0) {
+        direction = "down-right";
+      } else if (dy < 0 && dx !== 0) {
+        direction = "up-right";
+      } else if (dy > 0) {
+        direction = "down";
+      } else if (dy < 0) {
+        direction = "up";
+      } else {
+        direction = "right";
+      }
+
+      const animationKey = `sofia-${direction}`;
+
+      // Espelha horizontalmente as animações para andar à esquerda.
+      this.player.setFlipX(dx < 0);
+
+      // Só reinicia a animação quando a direção muda.
+      if (this.playerDirection !== animationKey || !this.player.anims.isPlaying
+      ) {
+        this.playerDirection = animationKey;
+        this.player.play(animationKey);
+      }
+      // Normaliza a diagonal para não andar mais rápido.
       const magnitude = Math.hypot(dx, dy) || 1;
       const stepX = (dx / magnitude) * PLAYER_SPEED * deltaSeconds;
       const stepY = (dy / magnitude) * PLAYER_SPEED * deltaSeconds;
@@ -730,7 +975,39 @@
 
       if (!this.collidesAt(state.x + stepX, state.y)) state.x += stepX;
       if (!this.collidesAt(state.x, state.y + stepY)) state.y += stepY;
+
       this.updatePlayerVisualPosition();
+    }
+
+    playInteractionAnimation() {
+      if (this.interactionAnimating) return;
+
+      this.interactionAnimating = true;
+
+      // Recupera a direção atual da personagem.
+      const direction = this.playerDirection.replace("sofia-", "");
+
+      const animationKey = `sofia-interaction-${direction}`;
+
+      // Mantém o espelhamento caso Sofia esteja virada para a esquerda.
+      const wasFlipped = this.player.flipX;
+
+      this.player.setFlipX(wasFlipped);
+      this.player.play(animationKey);
+
+      // Aguarda a conclusão da animação.
+      this.player.once("animationcomplete", (animation) => {
+        if (animation.key !== animationKey) return;
+
+        // Retorna ao primeiro frame da direção atual.
+        this.player.anims.stop();
+        this.player.setTexture(`${this.playerDirection}-1`);
+
+        this.interactionAnimating = false;
+
+        // Executa a interação depois da animação.
+        this.interact();
+      });
     }
 
     collidesAt(x, y) {
@@ -821,6 +1098,9 @@
       camera.setScroll(x, y);
     }
 
+    // ----------------------------------------------------------
+    // INTERAÇÃO E INTERFACE: alvo próximo, avisos e missões.
+    // ----------------------------------------------------------
     getPlayerTile() {
       const centerX = this.playerState.x + this.playerState.width / 2;
       const centerY = this.playerState.y + this.playerState.height / 2;
@@ -882,6 +1162,36 @@
       this.notice.setText(message).setVisible(true);
     }
 
+    updateMissionPanel() {
+      const panel = document.querySelector("#painel-missoes");
+      if (!panel) return;
+
+      const missions = [
+        { key: "sandwiches", text: "Ir para a cozinha e preparar os sanduíches" },
+        { key: "puzzle", text: "Ir até a sala de estar montar o quebra-cabeça" },
+        { key: "look", text: "Ir ao guarda-roupa e escolher o look" },
+        { key: "phone", text: "Atender a ligação das amigas no quarto" },
+        { key: "zoo", text: "Sair de casa para o zoológico" },
+        { key: "mixtures", text: "Encontrar as amigas" }
+      ];
+
+      const currentMission = missions.find(
+        mission => !this.progress[mission.key]
+      );
+
+      const content = currentMission
+        ? `<span>MISSÃO ATUAL</span><p>${currentMission.text}</p>`
+        : `<span>MISSÕES</span><p>Todas as missões concluídas!</p>`;
+
+      if (panel.dataset.content !== content) {
+        panel.innerHTML = content;
+        panel.dataset.content = content;
+      }
+    }
+
+    // ----------------------------------------------------------
+    // PROGRESSO: regras das missões e abertura dos minigames.
+    // ----------------------------------------------------------
     interact() {
       if (this.minigameOpen) return;
       const target = this.getNearbyTarget();
@@ -892,7 +1202,7 @@
 
       if (target.type === "portal") {
         if (target.portal.locked && !(this.progress.sandwiches && this.progress.puzzle && this.progress.look && this.progress.phone)) {
-          this.showNotice("A saída está trancada. Prepare os sanduíches, conclua o quebra-cabeça e o look, depois ligue para suas amigas.");
+          this.showNotice("A saída está trancada. Prepare os sanduíches, conclua o quebra-cabeça e o look, depois atenda a ligação das suas amigas.");
           return;
         }
         if (target.portal.to === "zoo") {
@@ -907,7 +1217,7 @@
         case "sandwiches":
           if (this.progress.sandwiches) { this.showNotice("Os sanduíches já estão prontos!"); break; }
           this.progress.sandwiches = true;
-          this.showNotice("Sofia: Prontinho! Sanduíches preparados. Agora posso continuar me arrumando.", 4200);
+          this.showNotice("Sofia: Prontinho! Sanduíches preparados. Agora posso continuar lendo meu livro na sala.", 4200);
           break;
         case "puzzle":
           if (!this.progress.sandwiches) { this.showNotice("Primeiro, vá à cozinha e prepare os sanduíches."); break; }
@@ -920,7 +1230,7 @@
           this.openMinigame(target.action);
           break;
         case "phone":
-          if (!this.progress.puzzle || !this.progress.look) { this.showNotice("Sofia: Vou ligar para as meninas depois de terminar o quebra-cabeça e escolher meu look."); break; }
+          if (!this.progress.puzzle || !this.progress.look) { this.showNotice("Sofia: O telefone não está tocando."); break; }
           if (this.progress.phone) { this.showNotice("Sofia: Até já, meninas! Estou indo encontrar vocês."); break; }
           this.progress.phone = true;
           this.showNotice("Sofia: Oi, meninas! Já estou pronta e com os sanduíches.\nAmiga: Estamos esperando você no zoológico!\nSofia: Estou a caminho!", 6500);
@@ -955,13 +1265,16 @@
         this.showNotice("Quebra-cabeça concluído! Agora vá ao quarto e escolha seu look.", 4200);
       } else if (minigameId === "look") {
         this.progress.look = true;
-        this.showNotice("Look escolhido! Agora use o telefone no quarto para falar com suas amigas.", 4200);
+        this.showNotice("Look escolhido! Agora atenda o celular na mesa do quarto ao lado da cama.", 4200);
       } else if (minigameId === "mixtures") {
         this.progress.mixtures = true;
         this.playEnding();
       }
     }
 
+    // ----------------------------------------------------------
+    // TRANSIÇÕES E FINALIZAÇÃO.
+    // ----------------------------------------------------------
     transitionToZoo(portal) {
       if (this.transitioning) return;
       this.transitioning = true;
@@ -999,10 +1312,16 @@
   }
 
   // ============================================================
-  // 5. CENA TEMPORÁRIA DOS MINIGAMES
+  // 5. INTEGRAÇÃO DOS MINIGAMES
   // ============================================================
-  // Os quatro pontos de interação funcionam, mas as mecânicas finais ainda
-  // precisam ser implementadas e integradas
+  // CONTRATO DE INTEGRAÇÃO PARA A EQUIPE:
+  // - MainScene abre esta cena com scene.launch("MiniGameScene", dados).
+  // - Os dados incluem minigameId, title e description.
+  // - Ao terminar, o minigame deve emitir "minigame:closed" no game.events,
+  //   enviando o mesmo minigameId.
+  // - MainScene recebe o evento em onMinigameClosed(minigameId).
+  // Não altere esses nomes sem atualizar os dois lados da integração.
+  // A tela abaixo continua provisória até os minigames externos serem entregues.
   class MiniGameScene extends Phaser.Scene {
     constructor() {
       super("MiniGameScene");
@@ -1066,12 +1385,13 @@
   }
 
   // ============================================================
-  // 6. INTERFACE HTML: MOBILE, TELA INICIAL E ORIENTAÇÃO
+  // 6. CONTROLES HTML: TELA INICIAL, MODO MOBILE E ORIENTAÇÃO
   // ============================================================
   let mode = navigator.maxTouchPoints > 0 ? "mobile" : "pc";
   let gameStarted = false;
   let orientationLockRequested = false;
 
+  // Centraliza a busca por elementos do HTML sem mudar os IDs existentes.
   const getElement = (selector) => document.querySelector(selector);
 
   function releaseMobileDirections() {
@@ -1143,8 +1463,6 @@
   getElement("#botaoIniciar").addEventListener("click", () => {
     if (gameStarted) return;
 
-    // O navegador bloqueia o carregamento dos PNGs via XHR quando a página
-    // é aberta diretamente pelo protocolo file://. Oriente antes de iniciar.
     if (window.location.protocol === "file:") {
       window.alert(
         "Abra este jogo por um servidor local para carregar os sprites.\n\n" +
