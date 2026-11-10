@@ -10,6 +10,10 @@
   const VIEW_ROWS = 12;
   const VIEW_WIDTH = VIEW_COLS * TILE_SIZE;
   const VIEW_HEIGHT = VIEW_ROWS * TILE_SIZE;
+  // O canvas é renderizado em RENDER_SCALE x a resolução lógica (544x384) e as câmeras
+  // dão zoom equivalente: o jogo continua igual, mas textos e imagens ficam nítidos.
+  const RENDER_SCALE = 2;
+  window.ZOO_RENDER_SCALE = RENDER_SCALE;
   const PLAYER_SIZE = 24;
   const PLAYER_SPEED = 180;
 
@@ -382,7 +386,7 @@
     },
     puzzle: {
       title: "Quebra-cabeça de Caroline Herschel",
-      description: "Esta área receberá o minigame de montar a imagem do cometa e conhecer a contribuição da astrônoma."
+      description: "Arraste as peças para montar a imagem do cometa e descubra a contribuição da astrônoma."
     },
     look: {
       title: "Escolha do look",
@@ -782,9 +786,9 @@
       const fitX = VIEW_WIDTH / worldWidth;
       const fitY = VIEW_HEIGHT / worldHeight;
       if (worldWidth <= VIEW_WIDTH && worldHeight <= VIEW_HEIGHT) {
-        return Math.min(fitX, fitY);
+        return Math.min(fitX, fitY) * RENDER_SCALE;
       }
-      return 1;
+      return RENDER_SCALE;
     }
 
     updateCamera() {
@@ -910,7 +914,7 @@
           this.showNotice("Sofia: Prontinho! Sanduíches preparados. Agora posso continuar me arrumando.", 4200);
           break;
         case "puzzle":
-          if (!this.progress.sandwiches) { this.showNotice("Primeiro, vá à cozinha e prepare os sanduíches."); break; }
+          //if (!this.progress.sandwiches) { this.showNotice("Primeiro, vá à cozinha e prepare os sanduíches."); break; }
           if (this.progress.puzzle) { this.showNotice("O quebra-cabeça já está montado."); break; }
           this.openMinigame(target.action);
           break;
@@ -944,12 +948,18 @@
         return;
       }
       this.minigameOpen = true;
-      this.scene.launch("MiniGameScene", { minigameId, ...data });
+      this.releaseAllDirections();
+      document.body.classList.add("em-minigame"); // esconde controles e textos da interface
+      const custom = (window.MINIGAME_SCENES || []).find((m) => m.id === minigameId);
+      this.scene.launch(custom ? custom.key : "MiniGameScene", { minigameId, ...data });
       this.scene.pause();
     }
 
-    onMinigameClosed(minigameId) {
+    onMinigameClosed(minigameId, completed = true) {
       this.minigameOpen = false;
+      document.body.classList.remove("em-minigame");
+      // Cenas customizadas enviam completed=false ao sair com ESC.
+      if (!completed) return;
       if (minigameId === "puzzle") {
         this.progress.puzzle = true;
         this.showNotice("Quebra-cabeça concluído! Agora vá ao quarto e escolha seu look.", 4200);
@@ -1013,6 +1023,7 @@
     }
 
     create() {
+      this.cameras.main.setZoom(RENDER_SCALE).centerOn(VIEW_WIDTH / 2, VIEW_HEIGHT / 2);
       const { title = "Minigame", description = "" } = this.dataForMinigame;
       this.add.rectangle(VIEW_WIDTH / 2, VIEW_HEIGHT / 2, VIEW_WIDTH - 28, VIEW_HEIGHT - 28, COLORS.blue)
         .setStrokeStyle(4, COLORS.white);
@@ -1103,6 +1114,28 @@
     }
   }
 
+  // Precisa ser chamada dentro de um gesto do usuário (clique/toque).
+  function requestFullscreen() {
+    const root = document.documentElement;
+    const request = root.requestFullscreen || root.webkitRequestFullscreen || root.msRequestFullscreen;
+    if (!request || document.fullscreenElement || document.webkitFullscreenElement) return;
+    try {
+      const result = request.call(root);
+      if (result && typeof result.catch === "function") {
+        result.catch(() => { /* O navegador pode negar; o jogo segue normalmente. */ });
+      }
+    } catch (_error) {
+      // Alguns navegadores (ex.: Safari no iPhone) não suportam tela cheia.
+    }
+  }
+
+  // Altura realmente visível (descontando barras do navegador no celular). As unidades
+  // vh/dvh nem sempre acompanham isso, então o CSS usa --app-h (ver style.css).
+  function updateAppHeight() {
+    const height = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    document.documentElement.style.setProperty("--app-h", `${Math.round(height)}px`);
+  }
+
   function updateOrientationNotice() {
     const portrait = window.innerHeight > window.innerWidth;
     const show = mode === "mobile" && portrait;
@@ -1117,8 +1150,8 @@
     const config = {
       type: Phaser.AUTO,
       parent: "game-host",
-      width: VIEW_WIDTH,
-      height: VIEW_HEIGHT,
+      width: VIEW_WIDTH * RENDER_SCALE,
+      height: VIEW_HEIGHT * RENDER_SCALE,
       backgroundColor: "#2D3A9F",
       pixelArt: true,
       antialias: false,
@@ -1126,11 +1159,11 @@
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: VIEW_WIDTH,
-        height: VIEW_HEIGHT
+        width: VIEW_WIDTH * RENDER_SCALE,
+        height: VIEW_HEIGHT * RENDER_SCALE
       },
       render: { pixelArt: true, antialias: false },
-      scene: [MainScene, MiniGameScene]
+      scene: [MainScene, MiniGameScene, ...(window.MINIGAME_SCENES || []).map((m) => m.scene)]
     };
 
     window.ZooGame = new Phaser.Game(config);
@@ -1156,6 +1189,7 @@
     }
 
     gameStarted = true;
+    requestFullscreen();
     const loading = getElement("#loadingOverlay");
     if (loading) loading.hidden = false;
     getElement("#telaInicial").style.display = "none";
@@ -1197,6 +1231,11 @@
   getElement("#botaoInteragir").addEventListener("contextmenu", (event) => event.preventDefault());
 
   window.addEventListener("blur", releaseMobileDirections);
+  updateAppHeight();
+  window.addEventListener("resize", updateAppHeight);
+  window.addEventListener("orientationchange", () => setTimeout(updateAppHeight, 250));
+  document.addEventListener("fullscreenchange", updateAppHeight);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", updateAppHeight);
   window.addEventListener("resize", updateOrientationNotice);
   window.addEventListener("orientationchange", () => {
     updateOrientationNotice();

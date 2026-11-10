@@ -30,7 +30,7 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; min-height: 100%; overflow: hidden; }
+html, body { width: 100%; height: var(--app-h, 100%); min-height: 100%; overflow: hidden; }
 body {
   display: flex;
   align-items: center;
@@ -122,7 +122,7 @@ button:focus-visible { outline: 3px dashed var(--cor-laranja); outline-offset: 5
   width: 100%;
   width: 100dvw;
   height: 100%;
-  height: 100dvh;
+  height: var(--app-h, 100dvh);
   min-height: 0;
   display: flex;
   align-items: center;
@@ -170,9 +170,9 @@ button:focus-visible { outline: 3px dashed var(--cor-laranja); outline-offset: 5
 #game-host {
   position: relative;
   flex: 0 1 auto;
-  width: min(94vw, calc((100dvh - 150px) * 1.4166667));
+  width: min(94vw, calc((var(--app-h, 100dvh) - 150px) * 1.4166667));
   max-width: calc(100vw - 32px);
-  max-height: calc(100dvh - 150px);
+  max-height: calc(var(--app-h, 100dvh) - 150px);
   aspect-ratio: 17 / 12;
   border: 4px solid var(--cor-texto);
   outline: 4px solid var(--cor-contorno);
@@ -274,8 +274,8 @@ button:focus-visible { outline: 3px dashed var(--cor-laranja); outline-offset: 5
 @media (max-width: 700px) {
   #interface-jogo { gap: 7px; }
   #game-host {
-    width: min(94vw, calc((100dvh - 118px) * 1.4166667));
-    max-height: calc(100dvh - 118px);
+    width: min(94vw, calc((var(--app-h, 100dvh) - 118px) * 1.4166667));
+    max-height: calc(var(--app-h, 100dvh) - 118px);
   }
   #label-cenario { font-size: clamp(.9rem, 3vw, 1.2rem); }
   #label-instrucoes { font-size: clamp(.58rem, 1.7vw, .75rem); }
@@ -283,6 +283,43 @@ button:focus-visible { outline: 3px dashed var(--cor-laranja); outline-offset: 5
   .instrucoes-iniciais { font-size: .68rem; }
   #trocarModo { top: 8px; right: 8px; font-size: .68rem; }
 }
+
+/* Celular na horizontal (altura curta): o jogo ocupa a tela toda e os textos
+   ficam sobrepostos à área de jogo em vez de empilhados acima/abaixo dela. */
+@media (max-height: 520px) {
+  #container-jogo { padding: 4px; }
+  #interface-jogo { position: relative; width: 100%; gap: 0; }
+  #game-host {
+    width: min(calc(100vw - 16px), calc((var(--app-h, 100dvh) - 16px) * 1.4166667));
+    max-width: none;
+    max-height: calc(var(--app-h, 100dvh) - 16px);
+    border-width: 3px;
+    box-shadow: 4px 4px 0 var(--cor-contorno);
+  }
+  #label-cenario,
+  #label-instrucoes,
+  #label-aviso {
+    position: absolute;
+    left: 50%;
+    z-index: 60;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  #label-cenario,
+  #label-instrucoes { background: rgba(45, 58, 159, .78); }
+  #label-cenario { top: 10px; width: auto; max-width: 60%; padding: 2px 10px; font-size: .8rem; }
+  #label-instrucoes { bottom: 10px; width: auto; max-width: 50%; padding: 2px 10px; font-size: .6rem; }
+  /* Diálogo: só muda de posição; fundo roxo, borda, sombra e fonte seguem os originais. */
+  #label-aviso { top: 38px; }
+}
+
+/* Durante um minigame: esconde controles e textos. */
+/* visibility (e não display) para o layout não mudar e a tela do jogo manter o tamanho. */
+body.em-minigame #label-cenario,
+body.em-minigame #label-instrucoes,
+body.em-minigame #label-aviso,
+body.em-minigame #controlesMobile,
+body.em-minigame #trocarModo { visibility: hidden !important; }
 
 /* Tela de carregamento: o jogo só aparece depois de os assets serem processados. */
 #loadingOverlay {
@@ -323,3 +360,6 @@ button:focus-visible { outline: 3px dashed var(--cor-laranja); outline-offset: 5
 .ending-card button { padding: 10px 18px; border: 3px solid var(--cor-contorno); background: white; color: var(--cor-contorno); font-weight: bold; }
 .ending-animate { animation: finalEntrar 1.4s ease both; }
 @keyframes finalEntrar { 0% { opacity: 0; transform: scale(.75) rotate(-2deg); } 65% { opacity: 1; transform: scale(1.04) rotate(1deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+
+/* No minigame o canvas é suavizado ao escalar (texto nítido); no mapa segue pixelado. */
+body.em-minigame #game-host canvas { image-rendering: auto; }
