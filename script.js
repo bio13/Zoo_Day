@@ -1097,7 +1097,10 @@
         ? centeredY
         : Phaser.Math.Clamp(centerY - visibleHeight / 2, 0, worldHeight - visibleHeight);
 
-      camera.setScroll(x, y);
+      camera.setScroll(
+        x - (camera.width - visibleWidth) / 2,
+        y - (camera.height - visibleHeight) / 2
+      );
     }
 
     // ----------------------------------------------------------
